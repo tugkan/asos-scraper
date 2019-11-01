@@ -16,56 +16,6 @@ process
     });
 
 
-function flattenAccounts(accounts) {
-    let a = [];
-    for (let i = 0; i < accounts.length; i++) {
-        if (accounts[i].children) {
-            a = a.concat(flattenAccounts(accounts[i].children));
-        }
-        a.push(accounts[i]);
-    }
-    return a;
-}
-
-// Fetches categories
-// Add all categories to the request queue
-exports.CATEGORIES = async ({ data }, { requestQueue }) => {
-    log.info('CRAWLER -- Getting categories');
-
-    const firstCategories = flattenAccounts(
-        data.navigation[0].children,
-    )
-
-        .filter(cat => cat.type === 'link')
-        .map(cat => ({ categoryId: cat.link.categoryId, categoryName: cat.content.title, topCategoryName: 'Men' }))
-        .filter(cat => cat.categoryId)
-        .filter(cat => cat.categoryName !== 'View all');
-
-    const secondCategories = flattenAccounts(
-        data.navigation[1].children,
-    )
-        .filter(cat => cat.type === 'link')
-        .map(cat => ({ categoryId: cat.link.categoryId, categoryName: cat.content.title, topCategoryName: 'Men' }))
-        .filter(cat => cat.categoryId)
-        .filter(cat => cat.categoryName !== 'View all');
-
-    const allCategories = firstCategories.concat(secondCategories);
-    log.info(`Total categories ${allCategories.length}`);
-    for (const category of allCategories) {
-        await requestQueue.addRequest({
-            url: tools.getCategoryURL(category.categoryId),
-            userData: {
-                label: 'INITIAL_LIST',
-                categoryId: category.categoryId,
-                category1: category.topCategoryName,
-                category2: category.categoryName,
-            },
-        });
-    }
-
-    log.debug('CRAWLER -- Got categories');
-};
-
 // Add all category pages to the request queue for pagination
 exports.INITIAL_LIST = async ({ data, request }, { requestQueue }) => {
     const { itemCount } = data;
@@ -129,19 +79,19 @@ exports.PRODUCT = async ({ data, request }, { requestQueue }) => {
             category1,
             category2,
         ],
-        gender: data.gender === 'Men' ? 'male' : 'female',
-        url: `https://www.asos.com/prd/${productId}`,
         title: data.name,
         desc: tools.stripHTML(data.description),
         brand: data.brand.name,
-        color: data.variants[0].colour,
-        availableSizes: data.variants.map((variant) => {
+        color: data.variants[0].colour.toLocaleLowerCase(),
+        size: data.variants.map((variant) => {
             return variant.brandSize;
         }),
         retailPrice: data.price.current.value,
         images: data.media.images.map((image) => {
             return { src: `https://${image.url}` };
         }),
+        url: `https://www.asos.com/prd/${productId}`,
+        gender: data.gender === 'Men' ? 'male' : 'female',
         relatedProducts: {},
     };
 
@@ -165,14 +115,13 @@ exports.PRODUCT_GROUP = async ({ data, request }) => {
 
     const PAIR_WITH = data.products.map((p) => {
         return {
-            retailerProductId: p.product.id,
+            retailerProductId: `${p.product.id}`,
             url: `https://www.asos.com/prd/${p.product.id}`,
         };
     });
 
     product.relatedProducts = {
         PAIR_WITH,
-        SIMILAR: [],
     };
 
     await Apify.pushData({ ...product });

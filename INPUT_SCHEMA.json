@@ -4,6 +4,16 @@
     "type": "object",
     "schemaVersion": 1,
     "properties": {
+        "startUrls": {
+            "title": "Start URLs",
+            "type": "array",
+            "description": "URLs to start with. It should be a category URL",
+            "prefill": [
+                { "url": "https://www.asos.com/us/women/new-in/cat/?cid=27108&nlid=ww|new+in|new+products" },
+                { "url": "https://www.asos.com/us/men/new-in/cat/?cid=27110&nlid=mw|new+in|new+products" }
+            ],
+            "editor": "requestListSources"
+        },
         "maxConcurrency": {
             "title": "Maximum Concurrency",
             "type": "integer",
@@ -11,12 +21,12 @@
             "editor": "number",
             "default": 500
         },
-        "minConcurrency": {
-            "title": "Minimum Concurrency",
-            "type": "integer",
-            "description": "Minimum concurrency that you want to run actor",
-            "editor": "number",
-            "default": 1
-        }        
+        "proxy":{
+            "title": "Proxy configuration",
+            "type": "object",
+            "description": "Select proxies to be used by your crawler.",
+            "default": { "useApifyProxy": true },
+            "editor": "proxy"
+        }
     }
 }

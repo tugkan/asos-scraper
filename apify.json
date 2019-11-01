@@ -1,6 +1,6 @@
 {
-	"name": "apify-asos-actor",
-	"version": "0.0",
+	"name": "asos-scraper",
+	"version": "1.0",
 	"buildTag": "latest",
 	"env": null,
 	"template": "cheerio_crawler"

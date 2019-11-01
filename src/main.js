@@ -19,8 +19,10 @@ Apify.main(async () => {
     const requestQueue = await Apify.openRequestQueue();
 
     // Initialize first request
-    const startPage = await tools.getSources();
-    await requestQueue.addRequest({ ...startPage });
+    const startPages = await tools.getSources();
+    for (const startPage of startPages) {
+        await requestQueue.addRequest({ ...startPage });
+    }
 
     // Create route
     const router = tools.createRouter({ requestQueue });
@@ -29,7 +31,7 @@ Apify.main(async () => {
     const crawler = new Apify.BasicCrawler({
         requestQueue,
         maxConcurrency: global.userInput.maxConcurrency,
-        minConcurrency: global.userInput.minConcurrency,
+        minConcurrency: 1,
         maxRequestRetries: 50,
         handleRequestTimeoutSecs: 99999,
         handleRequestFunction: async (context) => {
@@ -41,7 +43,7 @@ Apify.main(async () => {
             const resp = await rp({
                 method: 'GET',
                 url: request.url,
-                proxy: tools.createProxyUrl(),
+                ...(global.userInput.proxy.useApifyProxy ? { proxy: tools.createProxyUrl() } : {}),
                 headers: {
                     'asos-s-ver': '2.1.0.366',
                     'asos-ttpm': '1909',
@@ -51,7 +53,7 @@ Apify.main(async () => {
                 resolveWithFullResponse: true,
                 json: true,
             }).catch(async (err) => {
-                // Sanity check for product group route
+                // Sanity check for product groups
                 if (request.userData.label === 'PRODUCT_GROUP' && err.statusCode === 404) {
                     const { product } = request.userData;
                     await Apify.pushData({ ...product });
@@ -63,6 +65,7 @@ Apify.main(async () => {
             if (!resp || resp.statusCode !== 200 || !resp.body) {
                 throw new Error(`We got blocked by target on ${request.url}`);
             }
+
 
             // Add response body to context
             context.data = resp.body;
