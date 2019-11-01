@@ -1,0 +1,22 @@
+{
+    "title": "Asos Scraper",
+    "description": "An actor that scrapes products from the mobile API of Asos",
+    "type": "object",
+    "schemaVersion": 1,
+    "properties": {
+        "maxConcurrency": {
+            "title": "Maximum Concurrency",
+            "type": "integer",
+            "description": "Maximum concurrency that you want to run actor",
+            "editor": "number",
+            "default": 500
+        },
+        "minConcurrency": {
+            "title": "Minimum Concurrency",
+            "type": "integer",
+            "description": "Minimum concurrency that you want to run actor",
+            "editor": "number",
+            "default": 1
+        }        
+    }
+}
