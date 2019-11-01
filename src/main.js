@@ -32,7 +32,7 @@ Apify.main(async () => {
         requestQueue,
         maxConcurrency: global.userInput.maxConcurrency,
         minConcurrency: 1,
-        maxRequestRetries: 50,
+        maxRequestRetries: 10,
         handleRequestTimeoutSecs: 99999,
         handleRequestFunction: async (context) => {
             const { request } = context;
